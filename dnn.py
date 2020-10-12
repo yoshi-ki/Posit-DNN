@@ -114,7 +114,7 @@ class VGG11(torch.nn.Module):
       nn.ReLU(),
       nn.Linear(4096,4096),
       nn.ReLU(),
-      nn.Linear(4096,1000)
+      nn.Linear(4096,10)
     )
 
   def forward(self,x):
