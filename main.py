@@ -30,6 +30,9 @@ def main():
   if(sys.argv[1]=='mnist'):
     dataset_train, dataset_test = generate_datasets('mnist')
     dataloader_train, dataloader_test = generate_dataloader(dataset_train, dataset_test,batch_train=batch_train, batch_test=batch_test)
+  elif(sys.argv[1]=='cifar10'):
+    dataset_train, dataset_test = generate_datasets('cifar10')
+    dataloader_train, dataloader_test = generate_dataloader(dataset_train, dataset_test,batch_train=batch_train, batch_test=batch_test)
 
 
   # define NN
@@ -37,6 +40,10 @@ def main():
     net = EasyNN()
   elif(sys.argv[2] == 'EasyPNN'):
     net = EasyPNN()
+  elif(sys.argv[2] == 'VGG11'):
+    net = VGG11()
+  elif(sys.argv[2] == 'Positized_VGG11'):
+    net = Positized_VGG11()
 
   ## define loss function and optimizer
   criterion = nn.CrossEntropyLoss()
