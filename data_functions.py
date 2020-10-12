@@ -12,9 +12,9 @@ from torch.utils.data import DataLoader
 def generate_datasets(name):
   if(name == "mnist"):
     root = "./Datasets"
-    transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5))])
-    dataset_train = datasets.MNIST(root=root, train=True, download=False, transform=transform)
-    dataset_test = datasets.MNIST(root=root, train=False, download=False, transform=transform)
+    transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))])
+    dataset_train = datasets.MNIST(root=root, train=True, download=True, transform=transform)
+    dataset_test = datasets.MNIST(root=root, train=False, download=True, transform=transform)
   return dataset_train, dataset_test
 
 
