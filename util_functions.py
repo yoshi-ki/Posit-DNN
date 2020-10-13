@@ -94,5 +94,8 @@ def calculate_accuracy(dataloader_test,net):
 
 if __name__ == "__main__":
   #test code for floatTensor_to_positTensor
-  a = torch.randn(5)
-  print(a, floatTensor_to_positTensor(a,8,1))
+  x = torch.randn(10)
+  print(x)
+  y = floatTensor_to_positTensor(x,8,1)
+  print(y)
+  print(torch.div(y, x))

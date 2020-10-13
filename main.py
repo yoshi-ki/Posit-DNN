@@ -40,6 +40,8 @@ def main():
     net = EasyNN()
   elif(sys.argv[2] == 'EasyPNN'):
     net = EasyPNN()
+  elif(sys.argv[2] == 'EasyPNN2'):
+    net = EasyPNN2()
   elif(sys.argv[2] == 'VGG11'):
     net = VGG11()
   elif(sys.argv[2] == 'Positized_VGG11'):
@@ -57,7 +59,7 @@ def main():
 
 
   # train
-  epochs = 1
+  epochs = 5
   for epoch in range(epochs):
     running_loss = 0.0
     for i, (inputs, labels) in enumerate(dataloader_train):
