@@ -1,6 +1,8 @@
 import sys
 import os
 import csv
+import argparse
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -18,38 +20,66 @@ from util_functions import *
 
 def main():
 
+
+  """
+
+  ---------- Parser ----------
+
+
+  """
+
+  # parser
+  parser = argparse.ArgumentParser(description='neural network framework for posit')
+  parser.add_argument('dataset', help = 'specify datasets')
+  parser.add_argument('model', help = 'specify models')
+  parser.add_argument('--bit_size', type=int, default=16, help = 'specify bit size for posit (default is 16)')
+  parser.add_argument('--es_size', type=int, default=1, help = 'specify es size for posit (default is 1')
+  parser.add_argument('--batch_train', type=int, default=100, help='specify batch size of training (default is 100)')
+  parser.add_argument('--batch_test', type=int, default=1000, help='specify batch size of testing (default is 1000)')
+  parser.add_argument('--epochs', type=int, default=5, help='specify epochs (default is 5)')
+  args = parser.parse_args()
+
   # set hyper parameters for Posit-NN
-  bit_size = 8
-  es = 1
+  bit_size = args.bit_size
+  es_size = args.es_size
 
   # batch size for train and test
-  batch_train = 100
-  batch_test = 1000
+  batch_train = args.batch_train
+  batch_test = args.batch_test
+
+  # set epochs
+  epochs = args.epochs
+
 
   # load data
-  if(sys.argv[1]=='mnist'):
+  if(args.dataset=='mnist'):
     dataset_train, dataset_test = generate_datasets('mnist')
     dataloader_train, dataloader_test = generate_dataloader(dataset_train, dataset_test,batch_train=batch_train, batch_test=batch_test)
-  elif(sys.argv[1]=='cifar10'):
+  elif(args.dataset=='cifar10'):
     dataset_train, dataset_test = generate_datasets('cifar10')
     dataloader_train, dataloader_test = generate_dataloader(dataset_train, dataset_test,batch_train=batch_train, batch_test=batch_test)
 
 
   # define NN
-  if(sys.argv[2] == 'EasyNN'):
+  if(args.model == 'EasyNN'):
+    bit_size=0
+    es_size=0
     net = EasyNN()
-  elif(sys.argv[2] == 'EasyPNN'):
-    net = EasyPNN()
-  elif(sys.argv[2] == 'EasyPNN2'):
-    net = EasyPNN2()
-  elif(sys.argv[2] == 'VGG11'):
+  elif(args.model == 'EasyPNN'):
+    net = EasyPNN(bit_size,es_size)
+  elif(args.model == 'EasyPNN2'):
+    net = EasyPNN2(bit_size,es_size)
+  elif(args.model == 'VGG11'):
+    bit_size=0
+    es_size=0
     net = VGG11()
-  elif(sys.argv[2] == 'Positized_VGG11'):
-    net = Positized_VGG11()
+  elif(args.model == 'Positized_VGG11'):
+    net = Positized_VGG11(bit_size,es_size)
 
   ## define loss function and optimizer
   criterion = nn.CrossEntropyLoss()
-  optimizer = optim.SGD(net.parameters(),lr=0.01,momentum=0.9)
+  # optimizer = optim.SGD(net.parameters(),lr=0.01,momentum=0.9)
+  optimizer = optim.Adam(net.parameters(), lr=0.0001)
 
 
   # variables for visualize data
@@ -58,8 +88,17 @@ def main():
   accuracy_for_visualize = np.array([])
 
 
+
+  """
+
+
+  ---------- Training ----------
+
+
+  """
+
+
   # train
-  epochs = 5
   for epoch in range(epochs):
     running_loss = 0.0
     for i, (inputs, labels) in enumerate(dataloader_train):
@@ -88,7 +127,7 @@ def main():
 
 
     # write record as a csv file for each epoch
-    file_path = './Exec_Record/'+ sys.argv[1]+'_'+sys.argv[2]+'_log.csv'
+    file_path = './Exec_Record/'+ args.dataset+'_'+args.model+ '_' + str(bit_size) + '_' + str(es_size) + '_log.csv'
     with open(file_path, 'a') as f:
         writer = csv.writer(f, lineterminator='\n') # 改行コード（\n）を指定しておく
         writer.writerow([epoch+1,remembered_accuracy,remembered_running_loss])
@@ -100,39 +139,55 @@ def main():
         'epoch':epoch,
         'model_state_dict':net.state_dict(),
         'optimizer_state_dict':optimizer.state_dict(),
-      },'./Model_Record/'+sys.argv[1]+'_'+sys.argv[2]+'_' + str(epochs) + 'checkpoint.tar')
+      },'./Model_Record/'+args.dataset+'_'+args.model+'_' + str(epochs) + '_' + str(bit_size) + '_' + str(es_size) +'checkpoint.tar')
 
 
   # save models after training
-  torch.save(net,'./Model_Record/'+sys.argv[1]+'_'+sys.argv[2]+'_' + str(epochs) + 'epochs.pth')
+  torch.save(net,'./Model_Record/'+args.dataset+'_'+args.model+'_' + str(epochs) + '_' + str(bit_size) + '_' + str(es_size) +'epochs.pth')
 
   print('Training Finished')
 
 
 
 
+  """
+
+
+  ---------- Testing ----------
+
+
+  """
 
   # test
   print('Accuracy: {:2f} %%'.format(calculate_accuracy(dataloader_test,net)))
 
 
 
+
+
+  """
+
+
+  ---------- Visualizing ----------
+
+
+  """
   # visualize
   plt.figure()
-  plt.title(sys.argv[1]+'_'+sys.argv[2]+'_acc')
+  plt.title(args.dataset+'_'+args.model+'_acc')
   plt.xlabel('epochs')
   plt.ylabel('accuracy')
   plt.ylim(0,100)
   plt.plot(epochs_for_visualize,accuracy_for_visualize)
-  plt.savefig('./Visualize/' + sys.argv[1]+'_'+sys.argv[2]+'_acc.png')
+  plt.savefig('./Visualize/' + args.dataset+'_'+args.model+'_' + str(bit_size) + '_' + str(es_size) +'_acc.png')
 
 
   plt.figure()
-  plt.title(sys.argv[1]+'_'+sys.argv[2]+'_loss')
+  plt.title(args.dataset+'_'+args.model+'_loss')
   plt.xlabel('epochs')
   plt.ylabel('loss')
   plt.plot(epochs_for_visualize,loss_for_visualize)
-  plt.savefig('./Visualize/' + sys.argv[1]+'_'+sys.argv[2]+'_loss.png')
+  plt.savefig('./Visualize/' + args.dataset+'_'+args.model+'_' + str(bit_size) + '_' + str(es_size) +'_loss.png')
 
 
 if __name__ == "__main__":
